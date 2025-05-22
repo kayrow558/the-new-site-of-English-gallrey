@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galeria de Imagens</title>
+  <style>
+    /* Variáveis de tema para estilo claro */
+    :root {
+      --bg-body: #f4f4f4;
+      --bg-container: #ffffff;
+      --text-color: #333;
+      --accordion-bg: #007bff;
+      --accordion-hover: #3c97ff;
+      --btn-primary-bg: #28a745;
+      --btn-primary-hover: #218838;
+      --btn-secondary-bg: #dc3545;
+      --btn-secondary-hover: #c82333;
+      --zoom-btn-bg: #007bff;
+      --zoom-btn-hover: #0056b3;
+      --popup-bg: #ffffff;
+      --overlay-bg: rgba(0,0,0,0.8);
+    }
+
+    /* Variáveis de tema para estilo escuro */
+    [data-theme="dark"] {
+      --bg-body: #121212;
+      --bg-container: #1e1e1e;
+      --text-color: #f0f0f0;
+      --accordion-bg: #333;
+      --accordion-hover: #444;
+      --btn-primary-bg: #28a745;
+      --btn-primary-hover: #218838;
+      --btn-secondary-bg: #dc3545;
+      --btn-secondary-hover: #c82333;
+      --zoom-btn-bg: #5555ff;
+      --zoom-btn-hover: #3333aa;
+      --popup-bg: #2a2a2a;
+      --overlay-bg: rgba(0,0,0,0.9);
+    }
+
+    /* Variáveis de tema para o estilo roxo (purple) – aparência suave */
+    [data-theme="purple"] {
+      --bg-body: #f3e5f5;          /* Fundo roxo suave */
+      --bg-container: #ffffff;       /* Container com fundo branco */
+      --text-color: #4a148c;         /* Texto em roxo escuro */
+      --accordion-bg: #ce93d8;
+      --accordion-hover: #ba68c8;
+      --btn-primary-bg: #ab47bc;
+      --btn-primary-hover: #9c27b0;
+      --btn-secondary-bg: #dc3545;
+      --btn-secondary-hover: #c82333;
+      --zoom-btn-bg: #ce93d8;
+      --zoom-btn-hover: #ba68c8;
+      --popup-bg: #ffffff;
+      --overlay-bg: rgba(0,0,0,0.8);
+    }
+
+    /* Estilos base */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-color);
+    }
+    /* Se o tema for purple, aplica um gradiente suave no fundo do body */
+    body[data-theme="purple"] {
+      background-image: linear-gradient(45deg, #f3e5f5, #e1bee7);
+    }
+
+    #gallerySection {
+      padding: 20px;
+      background-color: var(--bg-body);
+    }
+
+    .gallery-container {
+      max-width: 900px;
+      margin: auto;
+      background: var(--bg-container);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .gallery-container h2 {
+      color: var(--text-color);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .back-report-btn {
+      background-color: var(--btn-secondary-bg);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background 0.3s;
+      margin: 20px auto;
+      display: block;
+      width: fit-content;
+    }
+
+    .back-report-btn:hover {
+      background-color: var(--btn-secondary-hover);
+    }
+
+    .gallery-accordion {
+      background-color: var(--accordion-bg);
+      color: white;
+      cursor: pointer;
+      padding: 15px;
+      width: 100%;
+      text-align: left;
+      border: none;
+      outline: none;
+      transition: 0.4s;
+      font-size: 18px;
+      border-radius: 30px;
+      margin-top: 5px;
+    }
+
+    .gallery-active,
+    .gallery-accordion:hover {
+      background-color: var(--accordion-hover);
+    }
+
+    .gallery-panel {
+      padding: 10px;
+      display: none;
+      background-color: var(--bg-container);
+      overflow: hidden;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .gallery-view-image-btn {
+      background-color: var(--btn-primary-bg);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background 0.3s;
+      margin-top: 10px;
+    }
+
+    .gallery-view-image-btn:hover {
+      background-color: var(--btn-primary-hover);
+    }
+
+    .gallery-zoom-controls {
+      margin-top: 10px;
+    }
+
+    .gallery-zoom-btn {
+      background-color: var(--zoom-btn-bg);
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      margin: 5px;
+      border-radius: 5px;
+    }
+
+    .gallery-zoom-btn:hover {
+      background-color: var(--zoom-btn-hover);
+    }
+
+    /* Overlay de Boas-Vindas */
+    #galleryWelcomeOverlay {
+      position: fixed;
+      z-index: 20;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--overlay-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #galleryWelcomeOverlay .overlay-content {
+      background: var(--popup-bg);
+      padding: 30px;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 90%;
+      color: var(--text-color);
+    }
+
+    /* Container para imagem no popup */
+    .gallery-image-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      max-width: 100%;
+      max-height: 70vh;
+      overflow: hidden;
+    }
+
+    #galleryPopupImg {
+      max-width: 100%;
+      height: auto;
+      transform: scale(1);
+      transition: transform 0.3s;
+    }
+
+    /* Popup da Galeria */
+    #galleryPopup {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--overlay-bg);
+      overflow: auto;
+    }
+
+    #galleryPopup .gallery-popup-content {
+      position: relative;
+      background: var(--popup-bg);
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 90%;
+      max-height: 90vh;
+      margin: 30px auto;
+      overflow: auto;
+      color: var(--text-color);
+    }
+
+    #galleryPopup img {
+      max-width: none;
+      height: auto;
+      border-radius: 8px;
+      transition: transform 0.3s;
+    }
+
+    #galleryPopup .gallery-close {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: red;
+    }
+
+    /* Botão de download da imagem */
+    #galleryDownloadBtn {
+      background-color: #ffc107;
+      color: black;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background 0.3s;
+      margin-top: 10px;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    #galleryDownloadBtn:hover {
+      background-color: #e0a800;
+    }
+
+    /* Seletor de tema (mantém a interface dos botões como testada) */
+    #themeSelect {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 30;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      color: #333;
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <!-- Seletor de Tema -->
+  <select id="themeSelect" onchange="setTheme(this.value)">
+    <option value="light">Tema Claro</option>
+    <option value="dark">Tema Escuro</option>
+    <option value="purple">Tema Roxo</option>
+  </select>
+
+  <!-- Seção da Galeria -->
+  <div id="gallerySection">
+    <!-- Overlay de Boas-Vindas -->
+    <div id="galleryWelcomeOverlay">
+      <div class="overlay-content">
+        <h3>Bem-vindo à Galeria de Imagens</h3>
+        <p>
+          Ao visualizar as imagens, você pode ampliar ou reduzir o tamanho. Caso a imagem ultrapasse a área visível, utilize a rolagem para ver todas as partes.
+        </p>
+        <button class="gallery-view-image-btn" onclick="closeGalleryOverlay()">Entrar</button>
+      </div>
+    </div>
+
+    <div class="gallery-container">
+      <h2>📸 Galeria de Imagens – <em>Angel english teacher</em></h2>
+      
+      <button class="gallery-accordion">🖼️ Imagem 1</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('imagem 1.jpeg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ Imagem 2</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('imagem 2.jpeg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ Imagem 3</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('imagem 3.jpeg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ Imagem 4</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('imagem 4.jpeg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 1</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('trabalho 1.jpeg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 2</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('trabalho 2.jpeg')">Ver Imagem 1</button>
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('how much.png')">Ver Respostas</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 3</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('3.jpg')">Ver Imagem</button>
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('ingles 22.jpeg')">Ver Respostas</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 4</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('4.jpg')">Ver Imagem</button>
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('2222.jpeg')">Ver Respostas</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 5</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('da liçao 5.png')">Ver Imagem</button>
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('liçao 1.png')">Ver Respostas</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 6</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('da liçao 6.png')">Ver Imagem</button>
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('liçao 2.png')">Ver Respostas</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 7</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('da liçao 7.png')">Ver Imagem</button>
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('liçao 3.png')">Ver Respostas</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 8</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('da liçao 7.png')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 9</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('IMAGEM 1 DAS 11.jpg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 10</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('IMAGEMDOIS11.jpg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 11</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('IMAGEMTRES11.jpg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 12</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('IMAGEM4.jpg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 13</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('IMAGEM5.jpg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 14</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('IMAGEM6.jpg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 15</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('IMAGEM7.jpg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 16</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('IMAGEM8.jpg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 17</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('IMAGEM9.jpg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 18</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('IMAGEM10.jpg')">Ver Imagem</button>
+      </div>
+
+      <button class="gallery-accordion">🖼️ tarefa 19</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('IMAGEM11.jpg')">Ver Imagem</button>
+      </div>
+
+
+         <button class="gallery-accordion">🖼️ tarefa 20</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('imagem20.jpg')">Ver Imagem</button>
+      </div>
+ 
+
+       <button class="gallery-accordion">🖼️ tarefa 21</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('imagem21.jpg')">Ver Imagem</button>
+      </div>
+      
+    
+    
+       <button class="gallery-accordion">🖼️ tarefa 22</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('imagem22.jpg')">Ver Imagem</button>
+      </div>
+
+
+
+
+       <button class="gallery-accordion">🖼️ tarefa 23</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('imagem 233333.jpg')">Ver Imagem</button>
+      </div>
+
+
+
+
+      
+       <button class="gallery-accordion">🖼️ tarefa 24</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('imagem 244444444.jpg')">Ver Imagem</button>
+      </div>
+
+    
+    
+
+      
+       <button class="gallery-accordion">🖼️ tarefa 25</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('26666666666666.jpg')">Ver Imagem</button>
+      </div>
+
+    
+    
+       <button class="gallery-accordion">🖼️ tarefa 26</button>
+      <div class="gallery-panel">
+        <button class="gallery-view-image-btn" onclick="showGalleryPopup('27777777777777777.jpg')">Ver Imagem</button>
+      </div>
+
+    
+
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+    <!-- Popup da Galeria -->
+    <div class="gallery-popup" id="galleryPopup">
+      <div class="gallery-popup-content">
+        <span class="gallery-close" onclick="closeGalleryPopup()">&times;</span>
+        <p>
+          Use os botões abaixo para ampliar ou reduzir a imagem. Se a imagem ultrapassar os limites da janela, utilize a rolagem para visualizar outras partes.
+        </p>
+        <div class="gallery-image-container">
+          <img id="galleryPopupImg" src="" alt="Imagem">
+        </div>
+        <div class="gallery-zoom-controls">
+          <button class="gallery-zoom-btn" onclick="zoomGalleryImage(1.2)">Aumentar 🔍</button>
+          <button class="gallery-zoom-btn" onclick="zoomGalleryImage(0.8)">Diminuir 🔍</button>
+          <p id="zoomLevel">Zoom: 1x</p>
+        </div>
+        <a id="galleryDownloadBtn" class="gallery-download-btn" download>Baixar Imagem ⬇️</a>
+        <button class="gallery-view-image-btn" onclick="closeGalleryPopup()">Fechar Imagem</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let zoomFactor = 1;
+    
+    function showGalleryPopup(imageSrc) {
+      zoomFactor = 1;
+      const img = document.getElementById("galleryPopupImg");
+      const downloadBtn = document.getElementById("galleryDownloadBtn");
+      img.style.transform = "scale(1)";
+      img.src = imageSrc;
+      document.getElementById("galleryPopup").style.display = "block";
+      downloadBtn.href = imageSrc;
+      downloadBtn.setAttribute("download", imageSrc);
+      updateZoomText();
+    }
+    
+    function closeGalleryPopup() {
+      document.getElementById("galleryPopup").style.display = "none";
+    }
+    
+    function zoomGalleryImage(factor) {
+      let newZoom = zoomFactor * factor;
+      if (newZoom >= 0.2 && newZoom <= 5) {
+        zoomFactor = newZoom;
+        document.getElementById("galleryPopupImg").style.transform = "scale(" + zoomFactor + ")";
+        updateZoomText();
+      }
+    }
+    
+    function updateZoomText() {
+      document.getElementById("zoomLevel").innerText = "Zoom: " + zoomFactor.toFixed(1) + "x";
+    }
+    
+    function closeGalleryOverlay() {
+      document.getElementById("galleryWelcomeOverlay").style.display = "none";
+    }
+    
+    var galleryAccordions = document.getElementsByClassName("gallery-accordion");
+    for (var i = 0; i < galleryAccordions.length; i++) {
+      galleryAccordions[i].addEventListener("click", function() {
+        this.classList.toggle("gallery-active");
+        var panel = this.nextElementSibling;
+        panel.style.display = (panel.style.display === "block") ? "none" : "block";
+      });
+    }
+    
+    function setTheme(theme) {
+      document.body.setAttribute("data-theme", theme);
+    }
+  </script>
+</body>
+</html>
